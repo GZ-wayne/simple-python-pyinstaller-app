@@ -4,19 +4,21 @@ pipeline {
     stage('Build') {
       agent {
         docker {
-          image 'python:2-alpine'
+          image 'python:3.11-alpine'
         }
 
       }
       steps {
-        sh 'python -m py_compile sources/add2vals.py sources/calc.py'
+        sh '''
+          python -m py_compile sources/add2vals.py sources/calc.py
+        '''
       }
     }
 
     stage('Test') {
       agent {
         docker {
-          image 'qnib/pytest'
+          image 'python:3.11-alpine'
         }
 
       }
@@ -27,14 +29,17 @@ pipeline {
 
       }
       steps {
-        sh 'py.test --verbose --junit-xml test-reports/results.xml sources/test_calc.py'
+        sh '''
+          pip install pytest
+          pytest --verbose --junitxml=test-reports/results.xml sources/test_calc.py
+        '''
       }
     }
 
     stage('Deliver') {
       agent {
         docker {
-          image 'cdrx/pyinstaller-linux:python2'
+          image 'python:3.11-slim'
         }
 
       }
@@ -45,7 +50,10 @@ pipeline {
 
       }
       steps {
-        sh 'pyinstaller --onefile sources/add2vals.py'
+        sh '''
+          pip install pyinstaller
+          python -m PyInstaller --onefile sources/add2vals.py
+        '''
       }
     }
 
