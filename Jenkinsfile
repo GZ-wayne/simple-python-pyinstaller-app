@@ -50,9 +50,10 @@ pipeline {
 
       }
       steps {
-        sh '''
-          pip install pyinstaller
-          python -m PyInstaller --onefile sources/add2vals.py
+        sh '''apt-get update
+apt-get install -y binutils
+pip install pyinstaller
+python -m PyInstaller --onefile sources/add2vals.py
         '''
       }
     }
