@@ -41,11 +41,7 @@ pipeline {
         label 'docker'
       }
       steps {
-        sh '''
-          docker buildx create --use --name multiarch-builder || true
-
-          docker buildx build             --platform linux/amd64,linux/arm64             -t ${IMAGE_NAME}:${IMAGE_TAG}             -t ${IMAGE_NAME}:latest             --push .
-        '''
+        sh 'docker build -t yourrepo/add2vals:arm64 .'
       }
     }
 
