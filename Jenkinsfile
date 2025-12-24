@@ -36,27 +36,22 @@ pipeline {
       }
     }
 
-    stage('Deliver') {
+    stage('Deliver (Docker Multi-Arch)') {
       agent {
-        docker {
-          image 'python:3.11-slim'
-        }
-
-      }
-      post {
-        success {
-          archiveArtifacts 'dist/add2vals'
-        }
-
+        label 'docker'
       }
       steps {
-        sh '''apt-get update
-apt-get install -y binutils
-pip install pyinstaller
-python -m PyInstaller --onefile sources/add2vals.py
+        sh '''
+          docker buildx create --use --name multiarch-builder || true
+
+          docker buildx build             --platform linux/amd64,linux/arm64             -t ${IMAGE_NAME}:${IMAGE_TAG}             -t ${IMAGE_NAME}:latest             --push .
         '''
       }
     }
 
+  }
+  environment {
+    IMAGE_NAME = 'yourrepo/add2vals'
+    IMAGE_TAG = "${env.BUILD_NUMBER}"
   }
 }
