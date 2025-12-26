@@ -9,9 +9,7 @@ pipeline {
 
       }
       steps {
-        sh '''
-          python -m py_compile sources/add2vals.py sources/calc.py
-        '''
+        sh 'python -m py_compile sources/add2vals.py sources/calc.py'
       }
     }
 
@@ -31,7 +29,7 @@ pipeline {
       steps {
         sh '''
           pip install pytest
-          pytest --verbose --junitxml=test-reports/results.xml sources/test_calc.py
+          pytest --junitxml=test-reports/results.xml sources/test_calc.py
         '''
       }
     }
@@ -42,7 +40,7 @@ pipeline {
       }
       steps {
         sh '''
-          docker build             -t ${ACR_REGISTRY}/${ACR_NAMESPACE}/${IMAGE_NAME}:${IMAGE_TAG} .
+          docker build -t ${ACR_REGISTRY}/${ACR_NAMESPACE}/${IMAGE_NAME}:${IMAGE_TAG} .
         '''
       }
     }
@@ -53,16 +51,16 @@ pipeline {
       }
       steps {
         withCredentials(bindings: [
-                                                  usernamePassword(
-                                                            credentialsId: ACR_CREDENTIALS_ID,
-                                                            usernameVariable: 'ACR_USERNAME',
-                                                            passwordVariable: 'ACR_PASSWORD'
-                                                          )
-                                                        ]) {
+                    usernamePassword(
+                        credentialsId: ACR_CREDENTIALS_ID,
+                        usernameVariable: 'ACR_USERNAME',
+                        passwordVariable: 'ACR_PASSWORD'
+                      )
+                    ]) {
               sh '''
-            echo "${ACR_PASSWORD}" | docker login               -u "${ACR_USERNAME}"               --password-stdin               ${ACR_REGISTRY}
+            echo "$ACR_PASSWORD" | docker login               -u "$ACR_USERNAME"               --password-stdin               $ACR_REGISTRY
 
-            docker push ${ACR_REGISTRY}/${ACR_NAMESPACE}/${IMAGE_NAME}:${IMAGE_TAG}
+            docker push $ACR_REGISTRY/$ACR_NAMESPACE/$IMAGE_NAME:$IMAGE_TAG
           '''
             }
 
