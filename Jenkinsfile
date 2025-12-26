@@ -27,9 +27,9 @@ pipeline {
 
       }
       steps {
-        sh '''
-          pip install pytest
-          pytest --junitxml=test-reports/results.xml sources/test_calc.py
+        sh '''pip install --proxy http://admin:123@150.230.232.250:8081/repository/proxy/ pytest
+
+pytest --junitxml=test-reports/results.xml sources/test_calc.py
         '''
       }
     }
@@ -39,8 +39,7 @@ pipeline {
         label 'docker'
       }
       steps {
-        sh '''
-          docker build -t ${ACR_REGISTRY}/${ACR_NAMESPACE}/${IMAGE_NAME}:${IMAGE_TAG} .
+        sh '''docker build -t ${ACR_REGISTRY}/${ACR_NAMESPACE}/${IMAGE_NAME}:${IMAGE_TAG} .
         '''
       }
     }
@@ -51,16 +50,15 @@ pipeline {
       }
       steps {
         withCredentials(bindings: [
-                    usernamePassword(
-                        credentialsId: ACR_CREDENTIALS_ID,
-                        usernameVariable: 'ACR_USERNAME',
-                        passwordVariable: 'ACR_PASSWORD'
-                      )
-                    ]) {
-              sh '''
-            echo "$ACR_PASSWORD" | docker login               -u "$ACR_USERNAME"               --password-stdin               $ACR_REGISTRY
+                              usernamePassword(
+                                    credentialsId: ACR_CREDENTIALS_ID,
+                                    usernameVariable: 'ACR_USERNAME',
+                                    passwordVariable: 'ACR_PASSWORD'
+                                  )
+                                ]) {
+              sh '''echo "$ACR_PASSWORD" | docker login  -u "$ACR_USERNAME"  --password-stdin  $ACR_REGISTRY
 
-            docker push $ACR_REGISTRY/$ACR_NAMESPACE/$IMAGE_NAME:$IMAGE_TAG
+docker push $ACR_REGISTRY/$ACR_NAMESPACE/$IMAGE_NAME:$IMAGE_TAG
           '''
             }
 
