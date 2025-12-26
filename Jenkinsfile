@@ -27,49 +27,71 @@ pipeline {
 
       }
       steps {
-        sh '''pip install pytest -i http://admin:123@10.0.0.143:8081/repository/pygroup/simple/ --trusted-host 10.0.0.143
-pytest --junitxml=test-reports/results.xml sources/test_calc.py
+        sh '''
+          pip install pytest             -i http://admin:123@10.0.0.143:8081/repository/pygroup/simple/             --trusted-host 10.0.0.143
+
+          pytest --junitxml=test-reports/results.xml sources/test_calc.py
         '''
       }
     }
 
-    stage('Build Docker Image') {
+    stage('SonarQube Scan') {
       agent {
-        label 'docker'
-      }
-      steps {
-        sh '''docker build -t ${ACR_REGISTRY}/${ACR_NAMESPACE}/${IMAGE_NAME}:${IMAGE_TAG} .
-        '''
-      }
-    }
-
-    stage('Login & Push Image') {
-      agent {
-        label 'docker'
-      }
-      steps {
-        withCredentials(bindings: [
-                                                            usernamePassword(
-                                                                        credentialsId: ACR_CREDENTIALS_ID,
-                                                                        usernameVariable: 'ACR_USERNAME',
-                                                                        passwordVariable: 'ACR_PASSWORD'
-                                                                      )
-                                                                    ]) {
-              sh '''echo "$ACR_PASSWORD" | docker login  -u "$ACR_USERNAME"  --password-stdin  $ACR_REGISTRY
-
-docker push $ACR_REGISTRY/$ACR_NAMESPACE/$IMAGE_NAME:$IMAGE_TAG
-          '''
-            }
-
-          }
+        docker {
+          image 'sonarsource/sonar-scanner-cli:latest'
         }
 
       }
-      environment {
-        ACR_REGISTRY = 'registry.cn-guangzhou.aliyuncs.com'
-        ACR_NAMESPACE = 'wayne-lee'
-        IMAGE_NAME = 'python-docker'
-        IMAGE_TAG = 'latest'
-        ACR_CREDENTIALS_ID = 'aliyun-docker-creds'
+      steps {
+        withCredentials(bindings: [
+                    string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')
+                  ]) {
+            sh '''sonar-scanner -Dsonar.projectKey=${SONAR_PROJECT_KEY}               -Dsonar.sources=.               -Dsonar.host.url=${SONAR_HOST_URL}               -Dsonar.login=${SONAR_TOKEN}
+          '''
+          }
+
+        }
       }
-    }
+
+      stage('Build Docker Image') {
+        agent {
+          label 'docker'
+        }
+        steps {
+          sh '''
+          docker build -t ${ACR_REGISTRY}/${ACR_NAMESPACE}/${IMAGE_NAME}:${IMAGE_TAG} .
+        '''
+        }
+      }
+
+      stage('Login & Push Image') {
+        agent {
+          label 'docker'
+        }
+        steps {
+          withCredentials(bindings: [
+                      usernamePassword(
+                          credentialsId: ACR_CREDENTIALS_ID,
+                          usernameVariable: 'ACR_USERNAME',
+                          passwordVariable: 'ACR_PASSWORD'
+                        )
+                      ]) {
+                sh '''#echo "$ACR_PASSWORD" | docker login               -u "$ACR_USERNAME"               --password-stdin               $ACR_REGISTRY
+#docker push $ACR_REGISTRY/$ACR_NAMESPACE/$IMAGE_NAME:$IMAGE_TAG
+          '''
+              }
+
+            }
+          }
+
+        }
+        environment {
+          ACR_REGISTRY = 'registry.cn-guangzhou.aliyuncs.com'
+          ACR_NAMESPACE = 'wayne-lee'
+          IMAGE_NAME = 'python-docker'
+          IMAGE_TAG = 'latest'
+          ACR_CREDENTIALS_ID = 'aliyun-docker-creds'
+          SONAR_HOST_URL = 'http://10.0.0.143:9000'
+          SONAR_PROJECT_KEY = 'sqp_82b09c4594e881ec49fb09abe17c42dfd0de4d02'
+        }
+      }
