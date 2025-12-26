@@ -44,10 +44,14 @@ pipeline {
       }
       steps {
         withCredentials(bindings: [
-                    string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')
-                  ]) {
-            sh '''sonar-scanner -Dsonar.projectKey=${SONAR_PROJECT_KEY}               -Dsonar.sources=.               -Dsonar.host.url=${SONAR_HOST_URL}               -Dsonar.login=${SONAR_TOKEN}
-          '''
+                              string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')
+                            ]) {
+            sh '''echo ${SONAR_PROJECT_KEY}\\${SONAR_HOST_URL}\\${SONAR_TOKEN}
+
+sonar-scanner -Dsonar.projectKey=${SONAR_PROJECT_KEY} \\
+-Dsonar.sources=.  \\
+-Dsonar.host.url=${SONAR_HOST_URL} \\
+-Dsonar.login=sqp_82b09c4594e881ec49fb09abe17c42dfd0de4d02'''
           }
 
         }
@@ -70,12 +74,12 @@ pipeline {
         }
         steps {
           withCredentials(bindings: [
-                      usernamePassword(
-                          credentialsId: ACR_CREDENTIALS_ID,
-                          usernameVariable: 'ACR_USERNAME',
-                          passwordVariable: 'ACR_PASSWORD'
-                        )
-                      ]) {
+                                  usernamePassword(
+                                        credentialsId: ACR_CREDENTIALS_ID,
+                                        usernameVariable: 'ACR_USERNAME',
+                                        passwordVariable: 'ACR_PASSWORD'
+                                      )
+                                    ]) {
                 sh '''#echo "$ACR_PASSWORD" | docker login               -u "$ACR_USERNAME"               --password-stdin               $ACR_REGISTRY
 #docker push $ACR_REGISTRY/$ACR_NAMESPACE/$IMAGE_NAME:$IMAGE_TAG
           '''
@@ -92,6 +96,6 @@ pipeline {
           IMAGE_TAG = 'latest'
           ACR_CREDENTIALS_ID = 'aliyun-docker-creds'
           SONAR_HOST_URL = 'http://10.0.0.143:9000'
-          SONAR_PROJECT_KEY = 'sqp_82b09c4594e881ec49fb09abe17c42dfd0de4d02'
+          SONAR_PROJECT_KEY = 'simple-python-pyinstaller-app'
         }
       }
