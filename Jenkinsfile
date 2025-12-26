@@ -9,9 +9,7 @@ pipeline {
 
       }
       steps {
-        sh '''
-          python -m py_compile sources/add2vals.py sources/calc.py
-        '''
+        sh 'python -m py_compile sources/add2vals.py sources/calc.py'
       }
     }
 
@@ -29,34 +27,49 @@ pipeline {
 
       }
       steps {
-        sh '''
-          pip install pytest
-          pytest --verbose --junitxml=test-reports/results.xml sources/test_calc.py
+        sh '''pip install pytest -i http://admin:123@10.0.0.143:8081/repository/pygroup/simple/ --trusted-host 10.0.0.143
+pytest --junitxml=test-reports/results.xml sources/test_calc.py
         '''
       }
     }
 
-    stage('Deliver') {
+    stage('Build Docker Image') {
       agent {
-        docker {
-          image 'python:3.11-slim'
-        }
-
-      }
-      post {
-        success {
-          archiveArtifacts 'dist/add2vals'
-        }
-
+        label 'docker'
       }
       steps {
-        sh '''apt-get update
-apt-get install -y binutils
-pip install pyinstaller
-python -m PyInstaller --onefile sources/add2vals.py
+        sh '''docker build -t ${ACR_REGISTRY}/${ACR_NAMESPACE}/${IMAGE_NAME}:${IMAGE_TAG} .
         '''
       }
     }
 
-  }
-}
+    stage('Login & Push Image') {
+      agent {
+        label 'docker'
+      }
+      steps {
+        withCredentials(bindings: [
+                                                            usernamePassword(
+                                                                        credentialsId: ACR_CREDENTIALS_ID,
+                                                                        usernameVariable: 'ACR_USERNAME',
+                                                                        passwordVariable: 'ACR_PASSWORD'
+                                                                      )
+                                                                    ]) {
+              sh '''echo "$ACR_PASSWORD" | docker login  -u "$ACR_USERNAME"  --password-stdin  $ACR_REGISTRY
+
+docker push $ACR_REGISTRY/$ACR_NAMESPACE/$IMAGE_NAME:$IMAGE_TAG
+          '''
+            }
+
+          }
+        }
+
+      }
+      environment {
+        ACR_REGISTRY = 'registry.cn-guangzhou.aliyuncs.com'
+        ACR_NAMESPACE = 'wayne-lee'
+        IMAGE_NAME = 'python-docker'
+        IMAGE_TAG = 'latest'
+        ACR_CREDENTIALS_ID = 'aliyun-docker-creds'
+      }
+    }
