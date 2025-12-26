@@ -9,8 +9,7 @@ pipeline {
 
       }
       steps {
-        sh '''
-          python -m py_compile sources/add2vals.py sources/calc.py
+        sh '''python -m py_compile sources/add2vals.py sources/calc.py
         '''
       }
     }
@@ -29,9 +28,8 @@ pipeline {
 
       }
       steps {
-        sh '''
-          pip install pytest
-          pytest --verbose --junitxml=test-reports/results.xml sources/test_calc.py
+        sh '''pip install pytest
+pytest --verbose --junitxml=test-reports/results.xml sources/test_calc.py
         '''
       }
     }
@@ -41,13 +39,17 @@ pipeline {
         label 'docker'
       }
       steps {
-        sh 'docker build -t yourrepo/add2vals:arm64 .'
+        sh '''docker build -t ${ACR_REGISTRY}/${ACR_NAMESPACE}/${IMAGE_NAME}:latest .
+'''
       }
     }
 
   }
   environment {
-    IMAGE_NAME = 'yourrepo/add2vals'
-    IMAGE_TAG = "${env.BUILD_NUMBER}"
+    ACR_REGISTRY = 'registry.cn-guangzhou.aliyuncs.com'
+    ACR_NAMESPACE = 'wayne-lee'
+    IMAGE_NAME = 'python-docker'
+    IMAGE_TAG = "latest"
+    ACR_CREDENTIALS_ID = 'aliyun-docker-creds'
   }
 }
