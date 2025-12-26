@@ -27,7 +27,7 @@ pipeline {
 
       }
       steps {
-        sh '''pip install --proxy http://admin:123@150.230.232.250:8081/repository/proxy/ pytest
+        sh '''pip install --proxy http://admin:123@10.0.0.143:8081/repository/proxy/ pytest
 
 pytest --junitxml=test-reports/results.xml sources/test_calc.py
         '''
@@ -50,12 +50,12 @@ pytest --junitxml=test-reports/results.xml sources/test_calc.py
       }
       steps {
         withCredentials(bindings: [
-                              usernamePassword(
-                                    credentialsId: ACR_CREDENTIALS_ID,
-                                    usernameVariable: 'ACR_USERNAME',
-                                    passwordVariable: 'ACR_PASSWORD'
-                                  )
-                                ]) {
+                                        usernamePassword(
+                                                credentialsId: ACR_CREDENTIALS_ID,
+                                                usernameVariable: 'ACR_USERNAME',
+                                                passwordVariable: 'ACR_PASSWORD'
+                                              )
+                                            ]) {
               sh '''echo "$ACR_PASSWORD" | docker login  -u "$ACR_USERNAME"  --password-stdin  $ACR_REGISTRY
 
 docker push $ACR_REGISTRY/$ACR_NAMESPACE/$IMAGE_NAME:$IMAGE_TAG
