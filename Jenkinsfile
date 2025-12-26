@@ -53,12 +53,12 @@ pipeline {
       }
       steps {
         withCredentials(bindings: [
-                    usernamePassword(
-                        credentialsId: ACR_CREDENTIALS_ID,
-                        usernameVariable: 'ACR_USERNAME',
-                        passwordVariable: 'ACR_PASSWORD'
-                      )
-                    ]) {
+                                                  usernamePassword(
+                                                            credentialsId: ACR_CREDENTIALS_ID,
+                                                            usernameVariable: 'ACR_USERNAME',
+                                                            passwordVariable: 'ACR_PASSWORD'
+                                                          )
+                                                        ]) {
               sh '''
             echo "${ACR_PASSWORD}" | docker login               -u "${ACR_USERNAME}"               --password-stdin               ${ACR_REGISTRY}
 
@@ -76,11 +76,5 @@ pipeline {
         IMAGE_NAME = 'python-docker'
         IMAGE_TAG = 'latest'
         ACR_CREDENTIALS_ID = 'aliyun-docker-creds'
-      }
-      post {
-        always {
-          sh 'docker logout ${ACR_REGISTRY} || true'
-        }
-
       }
     }
