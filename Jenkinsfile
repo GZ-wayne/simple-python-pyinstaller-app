@@ -45,12 +45,11 @@ pipeline {
       }
       steps {
         withCredentials(bindings: [
-                                                                                string(credentialsId: 'simple-python-pyinstaller-app_sonar_token', variable: 'SONAR_TOKEN')
-                                                                              ]) {
+                                                                                          string(credentialsId: 'simple-python-pyinstaller-app_sonar_token', variable: 'SONAR_TOKEN')
+                                                                                        ]) {
             sh '''echo ${SONAR_PROJECT_KEY}\\${SONAR_HOST_URL}\\${SONAR_TOKEN}
 
 sonar-scanner -Dsonar.projectKey=${SONAR_PROJECT_KEY} \\
--Dsonar.scanner.skipJreProvisioning=true \\
 -Dsonar.sources=.  \\
 -Dsonar.host.url=${SONAR_HOST_URL} '''
           }
@@ -75,12 +74,12 @@ sonar-scanner -Dsonar.projectKey=${SONAR_PROJECT_KEY} \\
         }
         steps {
           withCredentials(bindings: [
-                                                                                              usernamePassword(
-                                                                                                              credentialsId: ACR_CREDENTIALS_ID,
-                                                                                                              usernameVariable: 'ACR_USERNAME',
-                                                                                                              passwordVariable: 'ACR_PASSWORD'
-                                                                                                            )
-                                                                                                          ]) {
+                                                                                                          usernamePassword(
+                                                                                                                            credentialsId: ACR_CREDENTIALS_ID,
+                                                                                                                            usernameVariable: 'ACR_USERNAME',
+                                                                                                                            passwordVariable: 'ACR_PASSWORD'
+                                                                                                                          )
+                                                                                                                        ]) {
                 sh '''#echo "$ACR_PASSWORD" | docker login               -u "$ACR_USERNAME"               --password-stdin               $ACR_REGISTRY
 #docker push $ACR_REGISTRY/$ACR_NAMESPACE/$IMAGE_NAME:$IMAGE_TAG
           '''
