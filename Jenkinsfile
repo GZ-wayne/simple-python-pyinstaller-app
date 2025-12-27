@@ -44,8 +44,8 @@ pytest --junitxml=test-reports/results.xml sources/test_calc.py
       }
       steps {
         withCredentials(bindings: [
-                                                                                                                                  string(credentialsId: 'simple-python-pyinstaller-app_sonar_token', variable: 'SONAR_TOKEN')
-                                                                                                                                ]) {
+                                                                                                                                            string(credentialsId: 'simple-python-pyinstaller-app_sonar_token', variable: 'SONAR_TOKEN')
+                                                                                                                                          ]) {
             sh '''#echo ${SONAR_PROJECT_KEY}\\${SONAR_HOST_URL}\\${SONAR_TOKEN}
 
 sonar-scanner -Dsonar.projectKey=${SONAR_PROJECT_KEY} \\
@@ -73,12 +73,12 @@ sonar-scanner -Dsonar.projectKey=${SONAR_PROJECT_KEY} \\
         }
         steps {
           withCredentials(bindings: [
-                                                                                                                                                          usernamePassword(
-                                                                                                                                                                                    credentialsId: ACR_CREDENTIALS_ID,
-                                                                                                                                                                                    usernameVariable: 'ACR_USERNAME',
-                                                                                                                                                                                    passwordVariable: 'ACR_PASSWORD'
-                                                                                                                                                                                  )
-                                                                                                                                                                                ]) {
+                                                                                                                                                                      usernamePassword(
+                                                                                                                                                                                                  credentialsId: ACR_CREDENTIALS_ID,
+                                                                                                                                                                                                  usernameVariable: 'ACR_USERNAME',
+                                                                                                                                                                                                  passwordVariable: 'ACR_PASSWORD'
+                                                                                                                                                                                                )
+                                                                                                                                                                                              ]) {
                 sh '''#echo "$ACR_PASSWORD" | docker login               -u "$ACR_USERNAME"               --password-stdin               $ACR_REGISTRY
 #docker push $ACR_REGISTRY/$ACR_NAMESPACE/$IMAGE_NAME:$IMAGE_TAG
           '''
@@ -95,7 +95,7 @@ sonar-scanner -Dsonar.projectKey=${SONAR_PROJECT_KEY} \\
 
             }
             steps {
-              sh 'docker run --rm registry.cn-guangzhou.aliyuncs.com/wayne-lee/python-docker:latest  /bin/bash 1+2'
+              sh 'docker run --rm registry.cn-guangzhou.aliyuncs.com/wayne-lee/python-docker:latest  1 3'
             }
           }
 
